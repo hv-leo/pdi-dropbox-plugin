@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<market xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/pentaho/marketplace-metadata/master/marketplace.xsd"> 
+  <market_entry>
+    <id>pdi-dropbox-plugin</id>
+	<type>Step</type>
+	<name>PDI Dropbox Plugin</name>
+	<category>
+      <name>Connectivity</name>
+      <parent>
+        <name>PDI Plugins</name>
+      </parent>
+    </category>
+	<description>PDI plugin that offers Input and Ouput steps for Dropbox.</description>
+	<documentation_url>https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin</documentation_url>
+    <author>Leonardo Coelho</author>
+	<author_url>https://github.com/LeonardoCoelho71950</author_url>
+	<license_name>GNU General Public License</license_name>
+    <license_text>For more details see: http://www.gnu.org/licenses/</license_text>
+    <support_level>COMMUNITY_SUPPORTED</support_level>
+	<support_message>Supported by Leonardo Coelho</support_message>
+	<versions>
+      <version>
+       <branch>Beta</branch>
+       <version>0.0.1-beta</version>
+	   <name>0.0.1-beta</name>
+       <package_url>https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/raw/Beta/pdi-dropbox-plugin.zip</package_url>
+       <development_stage>
+         <lane>Community</lane>
+         <phase>1</phase>
+       </development_stage>
+      </version>
+    </versions>
+  </market_entry>
+</market>
