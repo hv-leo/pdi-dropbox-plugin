@@ -22,8 +22,8 @@
       <version>
        <branch>Beta</branch>
        <version>0.0.1-beta</version>
-	   <name>0.0.1-beta</name>
-       <package_url>https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/raw/Beta/pdi-dropbox-plugin.zip</package_url>
+	     <name>0.0.1-beta</name>
+       <package_url>https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/raw/master/pdi-dropbox-plugin.zip</package_url>
        <development_stage>
          <lane>Community</lane>
          <phase>1</phase>
