@@ -12,11 +12,11 @@
     </category>
 	<description>PDI plugin that offers Input and Ouput steps for Dropbox.</description>
 	<documentation_url>https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin</documentation_url>
-    <author>Leonardo Coelho</author>
+  <author>Leonardo Coelho</author>
 	<author_url>https://github.com/LeonardoCoelho71950</author_url>
 	<license_name>GNU General Public License</license_name>
-    <license_text>For more details see: http://www.gnu.org/licenses/</license_text>
-    <support_level>COMMUNITY_SUPPORTED</support_level>
+  <license_text>For more details see: http://www.gnu.org/licenses/</license_text>
+  <support_level>COMMUNITY_SUPPORTED</support_level>
 	<support_message>Supported by Leonardo Coelho</support_message>
 	<versions>
       <version>
