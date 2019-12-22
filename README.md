@@ -3,7 +3,7 @@
 PDI plugin that offers Input and Ouput steps for Dropbox.
 
 ## Dropbox Input
-The dropbox input step read information from a Dropbox storage account.
+The dropbox input step reads information from a Dropbox storage account.
 
 ### Fields
 Field  | Description
