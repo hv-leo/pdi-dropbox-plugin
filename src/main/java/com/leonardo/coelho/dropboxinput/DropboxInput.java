@@ -25,6 +25,7 @@ import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.FileMetadata;
 import com.google.common.io.Files;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -50,6 +51,8 @@ public class DropboxInput extends BaseStep implements StepInterface {
   private DropboxInputMeta meta;
   private DropboxInputData data;
 
+  private int failedTransfers = 0;
+
   public DropboxInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
     Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
@@ -63,7 +66,31 @@ public class DropboxInput extends BaseStep implements StepInterface {
      *          The data to initialize
      */
   public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
-    return super.init( stepMetaInterface, stepDataInterface );
+    meta = (DropboxInputMeta) stepMetaInterface;
+    data = (DropboxInputData) stepDataInterface;
+
+    if ( super.init( stepMetaInterface, stepDataInterface ) ) {
+      if ( Utils.isEmpty( meta.getAccessTokenField() ) ) {
+        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Missing.AccessToken" ) );
+        return false;
+      }
+
+      // Mapping SourceFiles field.
+      if ( Utils.isEmpty( meta.getSourceFilesField() ) ) {
+        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Missing.SourceFiles" ) );
+        return false;
+      }
+
+      // Mapping TargetFieles field.
+      if ( Utils.isEmpty( meta.getTargetFilesField() ) ) {
+        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Missing.TargetFiles" ) );
+        return false;
+      }
+
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
@@ -80,15 +107,54 @@ public class DropboxInput extends BaseStep implements StepInterface {
     // We need to map the fields.
     if ( first ) {
       first = false;
+
       data.accessTokenIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getAccessTokenField() );
+      if ( data.accessTokenIdx < 0 ) {
+        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Invalid.AccessToken" ) );
+        setErrors( 1 );
+        stopAll();
+        return false;
+      }
+
       data.sourceFileIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getSourceFilesField() );
+      if ( data.sourceFileIdx < 0 ) {
+        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Invalid.SourceFiles" ) );
+        setErrors( 1 );
+        stopAll();
+        return false;
+      }
+
       data.targetFilesIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getTargetFilesField() );
+      if ( data.targetFilesIdx < 0 ) {
+        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Invalid.TargetFiles" ) );
+        setErrors( 1 );
+        stopAll();
+        return false;
+      }
     }
 
     // Get Values from Input Row.
     String accessToken = (String) r[data.accessTokenIdx];
     String sourceFile = (String) r[data.sourceFileIdx];
     String targetFile = (String) r[data.targetFilesIdx ];
+
+    if ( Utils.isEmpty( accessToken ) ) {
+      logError( BaseMessages.getString( PKG, "DropboxInputDialog.Null.AccessToken" ) );
+      setErrors( ++failedTransfers );
+      return true;
+    }
+
+    if ( Utils.isEmpty( sourceFile ) ) {
+      logError( BaseMessages.getString( PKG, "DropboxInputDialog.Null.SourceFiles" ) );
+      setErrors( ++failedTransfers );
+      return true;
+    }
+
+    if ( Utils.isEmpty( targetFile ) ) {
+      logError( BaseMessages.getString( PKG, "DropboxInputDialog.Null.TargetFiles" ) );
+      setErrors( ++failedTransfers );
+      return true;
+    }
 
     // Create a DbxClientV2 to make API calls.
     DbxRequestConfig requestConfig = new DbxRequestConfig( "examples-download-file" );
@@ -113,19 +179,16 @@ public class DropboxInput extends BaseStep implements StepInterface {
       out.close();
     } catch ( DbxException ex ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Log.DownloadError", ex.getMessage() ) );
-      setErrors( 1 );
-      stopAll();
-      return false;
+      setErrors( ++failedTransfers );
+      return true;
     } catch ( FileNotFoundException ex ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Log.FileNotFound", targetFile ) );
-      setErrors( 1 );
-      stopAll();
-      return false;
+      setErrors( ++failedTransfers );
+      return true;
     } catch ( IOException ex ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Log.ErrorReadingFile", sourceFile, ex.getMessage() ) );
-      setErrors( 1 );
-      stopAll();
-      return false;
+      setErrors( ++failedTransfers );
+      return true;
     }
     log.logBasic( BaseMessages.getString( PKG, "DropboxInput.log.Downloaded", targetFile ) );
 
