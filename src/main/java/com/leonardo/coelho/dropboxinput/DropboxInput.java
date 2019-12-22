@@ -71,19 +71,19 @@ public class DropboxInput extends BaseStep implements StepInterface {
 
     if ( super.init( stepMetaInterface, stepDataInterface ) ) {
       if ( Utils.isEmpty( meta.getAccessTokenField() ) ) {
-        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Missing.AccessToken" ) );
+        logError( BaseMessages.getString( PKG, "DropboxInput.Missing.AccessToken" ) );
         return false;
       }
 
       // Mapping SourceFiles field.
       if ( Utils.isEmpty( meta.getSourceFilesField() ) ) {
-        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Missing.SourceFiles" ) );
+        logError( BaseMessages.getString( PKG, "DropboxInput.Missing.SourceFiles" ) );
         return false;
       }
 
-      // Mapping TargetFieles field.
+      // Mapping TargetFiles field.
       if ( Utils.isEmpty( meta.getTargetFilesField() ) ) {
-        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Missing.TargetFiles" ) );
+        logError( BaseMessages.getString( PKG, "DropboxInput.Missing.TargetFiles" ) );
         return false;
       }
 
@@ -110,7 +110,7 @@ public class DropboxInput extends BaseStep implements StepInterface {
 
       data.accessTokenIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getAccessTokenField() );
       if ( data.accessTokenIdx < 0 ) {
-        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Invalid.AccessToken" ) );
+        logError( BaseMessages.getString( PKG, "DropboxInput.Invalid.AccessToken" ) );
         setErrors( 1 );
         stopAll();
         return false;
@@ -118,7 +118,7 @@ public class DropboxInput extends BaseStep implements StepInterface {
 
       data.sourceFileIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getSourceFilesField() );
       if ( data.sourceFileIdx < 0 ) {
-        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Invalid.SourceFiles" ) );
+        logError( BaseMessages.getString( PKG, "DropboxInput.Invalid.SourceFiles" ) );
         setErrors( 1 );
         stopAll();
         return false;
@@ -126,7 +126,7 @@ public class DropboxInput extends BaseStep implements StepInterface {
 
       data.targetFilesIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getTargetFilesField() );
       if ( data.targetFilesIdx < 0 ) {
-        logError( BaseMessages.getString( PKG, "DropboxInputDialog.Invalid.TargetFiles" ) );
+        logError( BaseMessages.getString( PKG, "DropboxInput.Invalid.TargetFiles" ) );
         setErrors( 1 );
         stopAll();
         return false;
@@ -139,19 +139,19 @@ public class DropboxInput extends BaseStep implements StepInterface {
     String targetFile = (String) r[data.targetFilesIdx ];
 
     if ( Utils.isEmpty( accessToken ) ) {
-      logError( BaseMessages.getString( PKG, "DropboxInputDialog.Null.AccessToken" ) );
+      logError( BaseMessages.getString( PKG, "DropboxInput.Null.AccessToken" ) );
       setErrors( ++failedTransfers );
       return true;
     }
 
     if ( Utils.isEmpty( sourceFile ) ) {
-      logError( BaseMessages.getString( PKG, "DropboxInputDialog.Null.SourceFiles" ) );
+      logError( BaseMessages.getString( PKG, "DropboxInput.Null.SourceFiles" ) );
       setErrors( ++failedTransfers );
       return true;
     }
 
     if ( Utils.isEmpty( targetFile ) ) {
-      logError( BaseMessages.getString( PKG, "DropboxInputDialog.Null.TargetFiles" ) );
+      logError( BaseMessages.getString( PKG, "DropboxInput.Null.TargetFiles" ) );
       setErrors( ++failedTransfers );
       return true;
     }
@@ -166,9 +166,8 @@ public class DropboxInput extends BaseStep implements StepInterface {
       downloader = dbxClient.files().download( sourceFile );
     } catch ( DbxException ex ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Log.DownloadError", ex.getMessage() ) );
-      setErrors( 1 );
-      stopAll();
-      return false;
+      setErrors( ++failedTransfers );
+      return true;
     }
     try {
       // Create file and all non-existent parent folders.

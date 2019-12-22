@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.util.Date;
 
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -60,6 +61,8 @@ public class DropboxOutput extends BaseStep implements StepInterface {
   private DropboxOutputMeta meta;
   private DropboxOutputData data;
 
+  private int failedTransfers = 0;
+
   public DropboxOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
     Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
@@ -73,7 +76,31 @@ public class DropboxOutput extends BaseStep implements StepInterface {
      *          The data to initialize
      */
   public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
-    return super.init( stepMetaInterface, stepDataInterface );
+    meta = (DropboxOutputMeta) stepMetaInterface;
+    data = (DropboxOutputData) stepDataInterface;
+
+    if ( super.init( stepMetaInterface, stepDataInterface ) ) {
+      if ( Utils.isEmpty( meta.getAccessTokenField() ) ) {
+        logError( BaseMessages.getString( PKG, "DropboxOutput.Missing.AccessToken" ) );
+        return false;
+      }
+
+      // Mapping SourceFiles field.
+      if ( Utils.isEmpty( meta.getSourceFilesField() ) ) {
+        logError( BaseMessages.getString( PKG, "DropboxOutput.Missing.SourceFiles" ) );
+        return false;
+      }
+
+      // Mapping TargetFiles field.
+      if ( Utils.isEmpty( meta.getTargetFilesField() ) ) {
+        logError( BaseMessages.getString( PKG, "DropboxOutput.Missing.TargetFiles" ) );
+        return false;
+      }
+
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
@@ -90,15 +117,54 @@ public class DropboxOutput extends BaseStep implements StepInterface {
     // We need to map the fields.
     if ( first ) {
       first = false;
+
       data.accessTokenIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getAccessTokenField() );
+      if ( data.accessTokenIdx < 0 ) {
+        logError( BaseMessages.getString( PKG, "DropboxOutput.Invalid.AccessToken" ) );
+        setErrors( 1 );
+        stopAll();
+        return false;
+      }
+
       data.sourceFileIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getSourceFilesField() );
+      if ( data.sourceFileIdx < 0 ) {
+        logError( BaseMessages.getString( PKG, "DropboxOutput.Invalid.SourceFiles" ) );
+        setErrors( 1 );
+        stopAll();
+        return false;
+      }
+
       data.targetFilesIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getTargetFilesField() );
+      if ( data.targetFilesIdx < 0 ) {
+        logError( BaseMessages.getString( PKG, "DropboxOutput.Invalid.TargetFiles" ) );
+        setErrors( 1 );
+        stopAll();
+        return false;
+      }
     }
 
     // Get Values from Input Row.
     String accessToken = (String) r[data.accessTokenIdx];
     String sourceFile = (String) r[data.sourceFileIdx];
     String targetFile = (String) r[data.targetFilesIdx ];
+
+    if ( Utils.isEmpty( accessToken ) ) {
+      logError( BaseMessages.getString( PKG, "DropboxOutput.Null.AccessToken" ) );
+      setErrors( ++failedTransfers );
+      return true;
+    }
+
+    if ( Utils.isEmpty( sourceFile ) ) {
+      logError( BaseMessages.getString( PKG, "DropboxOutput.Null.SourceFiles" ) );
+      setErrors( ++failedTransfers );
+      return true;
+    }
+
+    if ( Utils.isEmpty( targetFile ) ) {
+      logError( BaseMessages.getString( PKG, "DropboxOutput.Null.TargetFiles" ) );
+      setErrors( ++failedTransfers );
+      return true;
+    }
 
     // Check Source Files.
     File localFile = new File( sourceFile );
@@ -125,15 +191,13 @@ public class DropboxOutput extends BaseStep implements StepInterface {
     log.logBasic( BaseMessages.getString( PKG, "DropboxOutput.log.Uploading", sourceFile ) );
     if ( localFile.length() <= ( 2 * data.CHUNKED_UPLOAD_CHUNK_SIZE ) ) {
       if ( !uploadFile( dbxClient, localFile, targetFile ) ) {
-        setErrors( 1 );
-        stopAll();
-        return false;
+        setErrors( ++failedTransfers );
+        return true;
       }
     } else {
       if ( !chunkedUploadFile( dbxClient, localFile, targetFile ) ) {
-        setErrors( 1 );
-        stopAll();
-        return false;
+        setErrors( ++failedTransfers );
+        return true;
       }
     }
     log.logBasic( BaseMessages.getString( PKG, "DropboxOutput.log.Uploaded", targetFile ) );
