@@ -84,19 +84,14 @@ public class DropboxOutput extends BaseStep implements StepInterface {
         logError( BaseMessages.getString( PKG, "DropboxOutput.Missing.AccessToken" ) );
         return false;
       }
-
-      // Mapping SourceFiles field.
       if ( Utils.isEmpty( meta.getSourceFilesField() ) ) {
         logError( BaseMessages.getString( PKG, "DropboxOutput.Missing.SourceFiles" ) );
         return false;
       }
-
-      // Mapping TargetFiles field.
       if ( Utils.isEmpty( meta.getTargetFilesField() ) ) {
         logError( BaseMessages.getString( PKG, "DropboxOutput.Missing.TargetFiles" ) );
         return false;
       }
-
       return true;
     } else {
       return false;
@@ -117,7 +112,7 @@ public class DropboxOutput extends BaseStep implements StepInterface {
     // We need to map the fields.
     if ( first ) {
       first = false;
-
+      // Mapping Access Token field.
       data.accessTokenIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getAccessTokenField() );
       if ( data.accessTokenIdx < 0 ) {
         logError( BaseMessages.getString( PKG, "DropboxOutput.Invalid.AccessToken" ) );
@@ -125,7 +120,7 @@ public class DropboxOutput extends BaseStep implements StepInterface {
         stopAll();
         return false;
       }
-
+      // Mapping Source Files field.
       data.sourceFileIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getSourceFilesField() );
       if ( data.sourceFileIdx < 0 ) {
         logError( BaseMessages.getString( PKG, "DropboxOutput.Invalid.SourceFiles" ) );
@@ -133,7 +128,7 @@ public class DropboxOutput extends BaseStep implements StepInterface {
         stopAll();
         return false;
       }
-
+      // Mapping Target Files field.
       data.targetFilesIdx = Arrays.binarySearch( getInputRowMeta().getFieldNames( ), meta.getTargetFilesField() );
       if ( data.targetFilesIdx < 0 ) {
         logError( BaseMessages.getString( PKG, "DropboxOutput.Invalid.TargetFiles" ) );
