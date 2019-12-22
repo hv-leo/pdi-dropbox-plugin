@@ -26,6 +26,8 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaBoolean;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -119,9 +121,11 @@ public class DropboxInputMeta extends BaseStepMeta implements StepMetaInterface 
     throws KettleException {
   }
   
-  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep, 
-    VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
-    // Default: nothing changes to rowMeta
+  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+      VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
+    ValueMetaInterface v = new ValueMetaBoolean( "result" );
+    v.setOrigin( origin );
+    rowMeta.addValueMeta( v );
   }
   
   public void check( List<CheckResultInterface> remarks, TransMeta transMeta,

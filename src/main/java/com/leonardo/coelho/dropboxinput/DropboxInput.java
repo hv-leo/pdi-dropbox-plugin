@@ -25,6 +25,8 @@ import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.FileMetadata;
 import com.google.common.io.Files;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.row.RowDataUtil;
+import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
@@ -50,8 +52,6 @@ public class DropboxInput extends BaseStep implements StepInterface {
 
   private DropboxInputMeta meta;
   private DropboxInputData data;
-
-  private int failedTransfers = 0;
 
   public DropboxInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
     Trans trans ) {
@@ -125,6 +125,9 @@ public class DropboxInput extends BaseStep implements StepInterface {
         stopAll();
         return false;
       }
+
+      data.outputRowMeta = getInputRowMeta().clone();
+      meta.getFields( data.outputRowMeta, getStepname(), null, null, this, repository, metaStore );
     }
 
     // Get Values from Input Row.
@@ -134,19 +137,19 @@ public class DropboxInput extends BaseStep implements StepInterface {
 
     if ( Utils.isEmpty( accessToken ) ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Null.AccessToken" ) );
-      setErrors( ++failedTransfers );
+      putRow( data.outputRowMeta, addTransferResult( r, false ) );
       return true;
     }
 
     if ( Utils.isEmpty( sourceFile ) ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Null.SourceFiles" ) );
-      setErrors( ++failedTransfers );
+      putRow( data.outputRowMeta, addTransferResult( r, false ) );
       return true;
     }
 
     if ( Utils.isEmpty( targetFile ) ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Null.TargetFiles" ) );
-      setErrors( ++failedTransfers );
+      putRow( data.outputRowMeta, addTransferResult( r, false ) );
       return true;
     }
 
@@ -160,7 +163,7 @@ public class DropboxInput extends BaseStep implements StepInterface {
       downloader = dbxClient.files().download( sourceFile );
     } catch ( DbxException ex ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Log.DownloadError", ex.getMessage() ) );
-      setErrors( ++failedTransfers );
+      putRow( data.outputRowMeta, addTransferResult( r, false ) );
       return true;
     }
     try {
@@ -172,24 +175,29 @@ public class DropboxInput extends BaseStep implements StepInterface {
       out.close();
     } catch ( DbxException ex ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Log.DownloadError", ex.getMessage() ) );
-      setErrors( ++failedTransfers );
+      putRow( data.outputRowMeta, addTransferResult( r, false ) );
       return true;
     } catch ( FileNotFoundException ex ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Log.FileNotFound", targetFile ) );
-      setErrors( ++failedTransfers );
+      putRow( data.outputRowMeta, addTransferResult( r, false ) );
       return true;
     } catch ( IOException ex ) {
       logError( BaseMessages.getString( PKG, "DropboxInput.Log.ErrorReadingFile", sourceFile, ex.getMessage() ) );
-      setErrors( ++failedTransfers );
+      putRow( data.outputRowMeta, addTransferResult( r, false ) );
       return true;
     }
     log.logBasic( BaseMessages.getString( PKG, "DropboxInput.log.Downloaded", targetFile ) );
 
-    putRow( getInputRowMeta(), r ); // copy row to possible alternate rowset(s).
+    putRow( data.outputRowMeta, addTransferResult( r, true ) ); // Transfer has succeeded.
 
     if ( checkFeedback( getLinesRead() ) ) {
       logBasic( BaseMessages.getString( PKG, "DropboxInput.Log.LineNumber" ) + getLinesRead() );
     }
     return true;
+  }
+
+  private Object[] addTransferResult( Object[] row, boolean success ) {
+    row[ getInputRowMeta().size() ] = success;
+    return row;
   }
 }

@@ -18,6 +18,7 @@
  */
 package com.leonardo.coelho.dropboxinput;
 
+import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
@@ -26,6 +27,7 @@ public class DropboxInputData extends BaseStepData implements StepDataInterface 
   int accessTokenIdx;
   int sourceFileIdx;
   int targetFilesIdx;
+  RowMetaInterface outputRowMeta;
 
   /**
    * 
