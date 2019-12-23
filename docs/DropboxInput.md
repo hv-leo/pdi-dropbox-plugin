@@ -16,4 +16,4 @@ In this example:
 * A file, called ```remoteFile.txt```, was successfully downloaded to our local filesystem, as ```localFile.txt```.
 * And there was a failed download attempt of an inexistent file, called ```notFound.txt```.
 
-![alt text](https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/blob/master/screenshots/dropbox-input.png "Downloading a file from Dropbox")
+![alt text](https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/blob/master/docs/screenshots/dropbox-input.png "Downloading a file from Dropbox")

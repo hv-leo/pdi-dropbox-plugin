@@ -16,4 +16,4 @@ In this example:
 * A file, called ```localFile.txt```, was successfully uploaded to our Dropbox storage, as ```remoteFile.txt```.
 * And there was a failed upload attempt of an inexistent file, called ```notFound.txt```.
 
-![alt text](https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/blob/master/screenshots/dropbox-output.png "Uploading a file to Dropbox")
+![alt text](https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/blob/master/docs/screenshots/dropbox-output.png "Uploading a file to Dropbox")
