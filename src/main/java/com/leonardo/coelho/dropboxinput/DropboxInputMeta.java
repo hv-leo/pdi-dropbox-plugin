@@ -135,6 +135,17 @@ public class DropboxInputMeta extends BaseStepMeta implements StepMetaInterface 
   }
 
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases ) throws KettleException {
+    try {
+      setSuccessfulStepname( rep.getStepAttributeString( id_step, "sendSuccessfulTo" ) );
+      setFailedStepname( rep.getStepAttributeString( id_step, "sendFailedTo" ) );
+      accessTokenField = rep.getStepAttributeString( id_step, "accessTokenField" );
+      sourceFilesField = rep.getStepAttributeString( id_step, "sourceFilesField" );
+      targetFilesField = rep.getStepAttributeString( id_step, "targetFilesField" );
+
+    } catch ( Exception e ) {
+      throw new KettleException( BaseMessages.getString(
+        PKG, "DropboxInputMeta.Exception.UnexpectedErrorInReadingStepInfoFromRepository" ), e );
+    }
   }
 
   @Override
@@ -150,6 +161,16 @@ public class DropboxInputMeta extends BaseStepMeta implements StepMetaInterface 
   
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step )
     throws KettleException {
+    try {
+      rep.saveStepAttribute( id_transformation, id_step, "sendSuccessfulTo", getSuccessfulStepname() );
+      rep.saveStepAttribute( id_transformation, id_step, "sendFailedTo", getSuccessfulStepname() );
+      rep.saveStepAttribute( id_transformation, id_step, "accessTokenField", accessTokenField );
+      rep.saveStepAttribute( id_transformation, id_step, "sourceFilesField", sourceFilesField );
+      rep.saveStepAttribute( id_transformation, id_step, "targetFilesField", targetFilesField );
+    } catch ( Exception e ) {
+      throw new KettleException( BaseMessages.getString(
+        PKG, "DropboxInputMeta.Exception.UnableToSaveStepInfoToRepository", id_step ), e );
+    }
   }
   
   public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
