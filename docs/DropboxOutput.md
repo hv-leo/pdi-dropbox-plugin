@@ -1,4 +1,4 @@
-v# Dropbox Ouput
+# Dropbox Ouput
 The dropbox ouput step writes information to a Dropbox storage account.
 
 ### Fields
