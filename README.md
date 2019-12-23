@@ -11,7 +11,7 @@ PDI plugin that offers Input and Ouput steps for Dropbox.
 
 2. Create a pdi-dropbox-plugin folder in {pentaho.build}/plugins/steps.
 
-3. Copy target/pdi-dropbox-plugin.jar and target lib to pdi-dropbox-plugin folder.
+3. Copy target/pdi-dropbox-plugin.jar and target/lib to pdi-dropbox-plugin folder.
 
 ## Authors:
 
