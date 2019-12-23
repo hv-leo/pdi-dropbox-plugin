@@ -13,7 +13,7 @@ Target Files  |  Target Dropbox remote locations to writes the files.
 
 ### Example
 In this example: 
-* A file, called localFile.txt, was successfully uploaded to our Dropbox storage, as remoteFile.txt.
-* And there was a failed upload attempt of an inexistent file, called notFound.txt.
+* A file, called 'localFile.txt,' was successfully uploaded to our Dropbox storage, as 'remoteFile.txt'.
+* And there was a failed upload attempt of an inexistent file, called 'notFound.txt'.
 
 ![alt text](https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/blob/master/screenshots/dropbox-output.png "Uploading a file to Dropbox")
