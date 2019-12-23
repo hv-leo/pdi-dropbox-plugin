@@ -12,5 +12,8 @@ Source Files  |  Files to be read from the local file system.
 Target Files  |  Target Dropbox remote locations to writes the files. 
 
 ### Example
-In this example, we are uploading a file called 'localFile.txt' to our Dropbox storage, as 'remoteFile.txt'.
+In this example: 
+* A file, called localFile.txt, was successfully uploaded to our Dropbox storage, as remoteFile.txt.
+* And there was a failed upload attempt of an inexistent file, called notFound.txt.
+
 ![alt text](https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/blob/master/screenshots/dropbox-output.png "Uploading a file to Dropbox")
