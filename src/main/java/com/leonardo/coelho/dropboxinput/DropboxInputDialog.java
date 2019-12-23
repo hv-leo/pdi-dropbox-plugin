@@ -44,10 +44,13 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.step.errorhandling.StreamInterface;
 import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class DropboxInputDialog extends BaseStepDialog implements StepDialogInterface {
   private static Class<?> PKG = DropboxInputMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
@@ -63,6 +66,12 @@ public class DropboxInputDialog extends BaseStepDialog implements StepDialogInte
   // Step Name.
   private Label wStepNameLabel;
   private Text wStepNameField;
+
+  private Label wlSuccessfulToLabel;
+  private CCombo wSuccessfulToField;
+
+  private Label wlFailedToLabel;
+  private CCombo wFailedToField;
 
   // Group Transfer Content.
   private Group transferGroup;
@@ -157,6 +166,44 @@ public class DropboxInputDialog extends BaseStepDialog implements StepDialogInte
       .result();
     topSpacer.setLayoutData( fdSpacer );
 
+    //Send Successful Transfers to...
+    wlSuccessfulToLabel = new Label( contentComposite, SWT.RIGHT );
+    props.setLook( wlSuccessfulToLabel );
+    wlSuccessfulToLabel.setText( BaseMessages.getString( PKG, "DropboxInputDialog.SuccessfulTransfersTo.Label" ) );
+    FormData suclTransformation = new FormDataBuilder().left()
+      .top( topSpacer, ELEMENT_SPACING )
+      .right( middle, -ELEMENT_SPACING )
+      .result();
+    wlSuccessfulToLabel.setLayoutData( suclTransformation );
+
+    wSuccessfulToField = new CCombo( contentComposite, SWT.BORDER );
+    props.setLook( wSuccessfulToField );
+    wSuccessfulToField.addModifyListener( lsMod );
+    FormData sufTransformation = new FormDataBuilder().left( middle, 0 )
+      .top( topSpacer, ELEMENT_SPACING )
+      .right( 100, 0 )
+      .result();
+    wSuccessfulToField.setLayoutData( sufTransformation );
+
+    //Send Successful Transfers to...
+    wlFailedToLabel = new Label( contentComposite, SWT.RIGHT );
+    props.setLook( wlFailedToLabel );
+    wlFailedToLabel.setText( BaseMessages.getString( PKG, "DropboxInputDialog.FailedTransfersTo.Label" ) );
+    FormData faillTransformation = new FormDataBuilder().left()
+      .top( wSuccessfulToField, ELEMENT_SPACING )
+      .right( middle, -ELEMENT_SPACING )
+      .result();
+    wlFailedToLabel.setLayoutData( faillTransformation );
+
+    //Send Failed Transfers to...
+    wFailedToField = new CCombo( contentComposite, SWT.BORDER );
+    props.setLook( wFailedToField );
+    wFailedToField.addModifyListener( lsMod );
+    FormData failTransformation = new FormDataBuilder().left( middle, 0 )
+      .top( wSuccessfulToField, ELEMENT_SPACING )
+      .right( 100, 0 )
+      .result();
+    wFailedToField.setLayoutData( failTransformation );
 
     // Group for Transfer Fields.
     transferGroup = new Group( contentComposite, SWT.SHADOW_ETCHED_IN );
@@ -166,7 +213,7 @@ public class DropboxInputDialog extends BaseStepDialog implements StepDialogInte
     groupLayout.marginHeight = MARGIN_SIZE;
     transferGroup.setLayout( groupLayout );
     FormData groupLayoutData = new FormDataBuilder().fullWidth()
-      .top( topSpacer, MARGIN_SIZE )
+      .top( wFailedToField, MARGIN_SIZE )
       .result();
     transferGroup.setLayoutData( groupLayoutData );
     props.setLook( transferGroup );
@@ -195,7 +242,7 @@ public class DropboxInputDialog extends BaseStepDialog implements StepDialogInte
     props.setLook( wSourceFilesLabel );
     wSourceFilesLabel.setText( BaseMessages.getString( PKG, "DropboxInputDialog.SourceFiles.Label" ) );
     FormData fdlTransformation2 = new FormDataBuilder().left()
-      .top( wAccessTokenLabel, ELEMENT_SPACING )
+      .top( wAccessTokenField, ELEMENT_SPACING )
       .right( middle, -ELEMENT_SPACING )
       .result();
     wSourceFilesLabel.setLayoutData( fdlTransformation2 );
@@ -214,7 +261,7 @@ public class DropboxInputDialog extends BaseStepDialog implements StepDialogInte
     props.setLook( wTargetFilesLabel );
     wTargetFilesLabel.setText( BaseMessages.getString( PKG, "DropboxInputDialog.TargetFolder.Label" ) );
     FormData fdlTransformation3 = new FormDataBuilder().left()
-      .top( wSourceFilesLabel, ELEMENT_SPACING )
+      .top( wSourceFilesComboBox, ELEMENT_SPACING )
       .right( middle, -ELEMENT_SPACING )
       .result();
     wTargetFilesLabel.setLayoutData( fdlTransformation3 );
@@ -313,7 +360,20 @@ public class DropboxInputDialog extends BaseStepDialog implements StepDialogInte
    * Copy information from the meta-data input to the dialog fields.
    */
   public void getData() {
-    // Add previous fields to the combo box options.
+    // Add target steps to 'send to' combo box options.
+    wSuccessfulToField.setText( Const.NVL( meta.getSuccessfulStepname( ), "" ) );
+    wFailedToField.setText( Const.NVL( meta.getFailedStepname( ), "" ) );
+
+    StepMeta stepinfo = transMeta.findStep( stepname );
+    if ( stepinfo != null ) {
+      List<StepMeta> nextSteps = transMeta.findNextSteps( stepinfo );
+      nextSteps.stream().forEach( stepMeta -> {
+        wSuccessfulToField.add( stepMeta.getName() );
+        wFailedToField.add( stepMeta.getName() );
+      } );
+    }
+
+    // Add previous fields to tranfer combo box options.
     try {
       String[] prevFields = transMeta.getPrevStepFields( stepname ).getFieldNames();
       Arrays.stream( prevFields ).forEach( field -> {
@@ -343,6 +403,14 @@ public class DropboxInputDialog extends BaseStepDialog implements StepDialogInte
    * Save information from dialog fields to the meta-data input.
    */
   private void getMeta( DropboxInputMeta meta ) {
+    List<StreamInterface> targetStreams = meta.getStepIOMeta().getTargetStreams();
+    String successfulStream = wSuccessfulToField.getText();
+    String failedStream = wFailedToField.getText();
+    targetStreams.get( 0 ).setStepMeta( transMeta.findStep( successfulStream ) );
+    targetStreams.get( 1 ).setStepMeta( transMeta.findStep( failedStream ) );
+    meta.setSuccessfulStepname( successfulStream );
+    meta.setFailedStepname( failedStream );
+
     meta.setAccessTokenField( wAccessTokenField.getText() );
     meta.setSourceFilesField( wSourceFilesComboBox.getText() );
     meta.setTargetFilesField( wTargetFilesComboBox.getText() );
