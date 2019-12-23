@@ -18,6 +18,7 @@
  */
 package com.leonardo.coelho.dropboxoutput;
 
+import org.pentaho.di.core.RowSet;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -27,7 +28,11 @@ public class DropboxOutputData extends BaseStepData implements StepDataInterface
   int accessTokenIdx;
   int sourceFileIdx;
   int targetFilesIdx;
+
   RowMetaInterface outputRowMeta;
+  public RowSet successfulRowSet;
+  public RowSet failedRowSet;
+  public boolean chosesTargetSteps;
 
   static final long CHUNKED_UPLOAD_CHUNK_SIZE = 8L << 20; // 8MiB
   static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;

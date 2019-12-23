@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.util.Date;
 
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
@@ -49,8 +50,10 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.di.trans.step.errorhandling.StreamInterface;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Describe your step plugin.
@@ -91,6 +94,9 @@ public class DropboxOutput extends BaseStep implements StepInterface {
         logError( BaseMessages.getString( PKG, "DropboxOutput.Missing.TargetFiles" ) );
         return false;
       }
+      List<StreamInterface> targetStreams = meta.getStepIOMeta().getTargetStreams();
+      data.chosesTargetSteps =
+        targetStreams.get( 0 ).getStepMeta() != null || targetStreams.get( 1 ).getStepMeta() != null;
       return true;
     } else {
       return false;
@@ -137,7 +143,30 @@ public class DropboxOutput extends BaseStep implements StepInterface {
       }
 
       data.outputRowMeta = getInputRowMeta().clone();
-      meta.getFields( data.outputRowMeta, getStepname(), null, null, this, repository, metaStore );
+
+      // Cache the position of the RowSet for the output.
+      if ( data.chosesTargetSteps ) {
+        List<StreamInterface> targetStreams = meta.getStepIOMeta().getTargetStreams();
+        if ( !Utils.isEmpty( targetStreams.get( 0 ).getStepname() ) ) {
+          data.successfulRowSet = findOutputRowSet( getStepname(), getCopy(), targetStreams.get( 0 ).getStepname(), 0 );
+          if ( data.successfulRowSet == null ) {
+            throw new KettleException( BaseMessages.getString(
+              PKG, "DropboxOutput.Log.TargetStepInvalid", targetStreams.get( 0 ).getStepname() ) );
+          }
+        } else {
+          data.successfulRowSet = null;
+        }
+
+        if ( !Utils.isEmpty( targetStreams.get( 1 ).getStepname() ) ) {
+          data.failedRowSet = findOutputRowSet( getStepname(), getCopy(), targetStreams.get( 1 ).getStepname(), 0 );
+          if ( data.failedRowSet == null ) {
+            throw new KettleException( BaseMessages.getString(
+              PKG, "DropboxOutput.Log.TargetStepInvalid", targetStreams.get( 1 ).getStepname() ) );
+          }
+        } else {
+          data.failedRowSet = null;
+        }
+      }
     }
 
     // Get Values from Input Row.
@@ -147,19 +176,19 @@ public class DropboxOutput extends BaseStep implements StepInterface {
 
     if ( Utils.isEmpty( accessToken ) ) {
       logError( BaseMessages.getString( PKG, "DropboxOutput.Null.AccessToken" ) );
-      putRow( data.outputRowMeta, addTransferResult( r, false ) );
+      putFailedTransferRow( r );
       return true;
     }
 
     if ( Utils.isEmpty( sourceFile ) ) {
       logError( BaseMessages.getString( PKG, "DropboxOutput.Null.SourceFiles" ) );
-      putRow( data.outputRowMeta, addTransferResult( r, false ) );
+      putFailedTransferRow( r );
       return true;
     }
 
     if ( Utils.isEmpty( targetFile ) ) {
       logError( BaseMessages.getString( PKG, "DropboxOutput.Null.TargetFiles" ) );
-      putRow( data.outputRowMeta, addTransferResult( r, false ) );
+      putFailedTransferRow( r );
       return true;
     }
 
@@ -167,12 +196,12 @@ public class DropboxOutput extends BaseStep implements StepInterface {
     File localFile = new File( sourceFile );
     if ( !localFile.exists() ) {
       logError( BaseMessages.getString( PKG, "DropboxOutput.Log.InvalidSourceFile.NotExist", sourceFile ) );
-      putRow( data.outputRowMeta, addTransferResult( r, false ) );
+      putFailedTransferRow( r );
       return true;
     }
     if ( !localFile.isFile() ) {
       logError( BaseMessages.getString( PKG, "DropboxOutput.Log.InvalidSourceFile.NotAFile", sourceFile ) );
-      putRow( data.outputRowMeta, addTransferResult( r, false ) );
+      putFailedTransferRow( r );
       return true;
     }
 
@@ -186,18 +215,18 @@ public class DropboxOutput extends BaseStep implements StepInterface {
     log.logBasic( BaseMessages.getString( PKG, "DropboxOutput.log.Uploading", sourceFile ) );
     if ( localFile.length() <= ( 2 * data.CHUNKED_UPLOAD_CHUNK_SIZE ) ) {
       if ( !uploadFile( dbxClient, localFile, targetFile ) ) {
-        putRow( data.outputRowMeta, addTransferResult( r, false ) );
+        putFailedTransferRow( r );
         return true;
       }
     } else {
       if ( !chunkedUploadFile( dbxClient, localFile, targetFile ) ) {
-        putRow( data.outputRowMeta, addTransferResult( r, false ) );
+        putFailedTransferRow( r );
         return true;
       }
     }
     log.logBasic( BaseMessages.getString( PKG, "DropboxOutput.log.Uploaded", targetFile ) );
 
-    putRow( data.outputRowMeta, addTransferResult( r, true ) ); // Transfer has succeeded.
+    putSuccessfulTransferRow( r ); // Transfer has succeeded.
 
     if ( checkFeedback( getLinesRead() ) ) {
       logBasic( BaseMessages.getString( PKG, "DropboxOutput.Log.LineNumber" ) + getLinesRead() );
@@ -205,9 +234,20 @@ public class DropboxOutput extends BaseStep implements StepInterface {
     return true;
   }
 
-  private Object[] addTransferResult( Object[] row, boolean success ) {
-    row[ getInputRowMeta().size() ] = success;
-    return row;
+  private void putFailedTransferRow( Object[] r ) throws KettleStepException {
+    if ( !data.chosesTargetSteps ) {
+      putRow( data.outputRowMeta, r );
+    } else {
+      putRowTo( data.outputRowMeta, r, data.failedRowSet );
+    }
+  }
+
+  private void putSuccessfulTransferRow( Object[] r ) throws KettleStepException {
+    if ( !data.chosesTargetSteps ) {
+      putRow( data.outputRowMeta, r );
+    } else {
+      putRowTo( data.outputRowMeta, r, data.successfulRowSet );
+    }
   }
 
   /**
