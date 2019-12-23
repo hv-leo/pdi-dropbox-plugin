@@ -142,7 +142,6 @@ public class DropboxOutputMeta extends BaseStepMeta implements StepMetaInterface
       accessTokenField = rep.getStepAttributeString( id_step, "accessTokenField" );
       sourceFilesField = rep.getStepAttributeString( id_step, "sourceFilesField" );
       targetFilesField = rep.getStepAttributeString( id_step, "targetFilesField" );
-
     } catch ( Exception e ) {
       throw new KettleException( BaseMessages.getString(
         PKG, "DropboxOutputMeta.Exception.UnexpectedErrorInReadingStepInfoFromRepository" ), e );
