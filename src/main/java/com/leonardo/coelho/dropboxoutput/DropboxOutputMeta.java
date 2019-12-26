@@ -162,7 +162,7 @@ public class DropboxOutputMeta extends BaseStepMeta implements StepMetaInterface
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
     try {
       rep.saveStepAttribute( id_transformation, id_step, "sendSuccessfulTo", getSuccessfulStepname() );
-      rep.saveStepAttribute( id_transformation, id_step, "sendFailedTo", getSuccessfulStepname() );
+      rep.saveStepAttribute( id_transformation, id_step, "sendFailedTo", getFailedStepname() );
       rep.saveStepAttribute( id_transformation, id_step, "accessTokenField", accessTokenField );
       rep.saveStepAttribute( id_transformation, id_step, "sourceFilesField", sourceFilesField );
       rep.saveStepAttribute( id_transformation, id_step, "targetFilesField", targetFilesField );
