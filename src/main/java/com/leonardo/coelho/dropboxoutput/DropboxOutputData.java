@@ -34,6 +34,7 @@ public class DropboxOutputData extends BaseStepData implements StepDataInterface
   public RowSet failedRowSet;
   public boolean chosesTargetSteps;
 
+  // Large files should be uploaded in chunks for optimization.
   static final long CHUNKED_UPLOAD_CHUNK_SIZE = 8L << 20; // 8MiB
   static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 5;
 

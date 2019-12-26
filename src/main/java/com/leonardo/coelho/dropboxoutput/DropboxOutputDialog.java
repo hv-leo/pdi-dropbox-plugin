@@ -68,16 +68,18 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
   private Label wStepNameLabel;
   private Text wStepNameField;
 
+  // Target step for successful transfers.
   private Label wlSuccessfulToLabel;
   private CCombo wSuccessfulToField;
 
+  // Target step for failed transfers.
   private Label wlFailedToLabel;
   private CCombo wFailedToField;
 
-  // Group Transfer Content.
+  // Group transfer content.
   private Group transferGroup;
 
-  // OAuth Access Token
+  // OAuth access token.
   private Label wAccessTokenLabel;
   private CCombo wAccessTokenField;
 
@@ -85,7 +87,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
   private Label wSourceFilesLabel;
   private CCombo wSourceFilesComboBox;
 
-  // Target folder.
+  // Target files to be created.
   private Label wTargetFilesLabel;
   private CCombo wTargetFilesComboBox;
 
@@ -106,7 +108,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
   }
 
   public String open() {
-    //Set up window
+    // Set up window
     Shell parent = getParent();
     Display display = parent.getDisplay();
 
@@ -122,14 +124,14 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
     };
     changed = meta.hasChanged();
 
-    //15 pixel margins
+    // 15 pixel margins
     FormLayout formLayout = new FormLayout();
     formLayout.marginLeft = MARGIN_SIZE;
     formLayout.marginHeight = MARGIN_SIZE;
     shell.setLayout( formLayout );
     shell.setText( BaseMessages.getString( PKG, "DropboxOutputDialog.Shell.Title" ) );
 
-    //Build a scrolling composite and a composite for holding all content
+    // Build a scrolling composite and a composite for holding all content
     scrolledComposite = new ScrolledComposite( shell, SWT.V_SCROLL );
     contentComposite = new Composite( scrolledComposite, SWT.NONE );
     FormLayout contentLayout = new FormLayout();
@@ -140,7 +142,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
     contentComposite.setLayoutData( compositeLayoutData );
     props.setLook( contentComposite );
 
-    //Step name label and text field
+    // Step name label and text field
     wStepNameLabel = new Label( contentComposite, SWT.RIGHT );
     wStepNameLabel.setText( BaseMessages.getString( PKG, "DropboxOutputDialog.Stepname.Label" ) );
     props.setLook( wStepNameLabel );
@@ -186,7 +188,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
       .result();
     wSuccessfulToField.setLayoutData( sufTransformation );
 
-    //Send Successful Transfers to...
+    // Send Failed Transfers to...
     wlFailedToLabel = new Label( contentComposite, SWT.RIGHT );
     props.setLook( wlFailedToLabel );
     wlFailedToLabel.setText( BaseMessages.getString( PKG, "DropboxOutputDialog.FailedTransfersTo.Label" ) );
@@ -196,7 +198,6 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
       .result();
     wlFailedToLabel.setLayoutData( faillTransformation );
 
-    //Send Failed Transfers to...
     wFailedToField = new CCombo( contentComposite, SWT.BORDER );
     props.setLook( wFailedToField );
     wFailedToField.addModifyListener( lsMod );
@@ -219,7 +220,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
     transferGroup.setLayoutData( groupLayoutData );
     props.setLook( transferGroup );
 
-    //Access Token Output label/field
+    // Access Token Output label/field
     wAccessTokenLabel = new Label( transferGroup, SWT.RIGHT );
     props.setLook( wAccessTokenLabel );
     wAccessTokenLabel.setText( BaseMessages.getString( PKG, "DropboxOutputDialog.AccessToken.Label" ) );
@@ -257,7 +258,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
       .result();
     wSourceFilesComboBox.setLayoutData( fdTransformation2 );
 
-    // Target Folder label/field
+    // Target Files label/field
     wTargetFilesLabel = new Label( transferGroup, SWT.RIGHT );
     props.setLook( wTargetFilesLabel );
     wTargetFilesLabel.setText( BaseMessages.getString( PKG, "DropboxOutputDialog.TargetFolder.Label" ) );
@@ -276,7 +277,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
       .result();
     wTargetFilesComboBox.setLayoutData( fdTransformation3 );
 
-    //Cancel, action and OK buttons for the bottom of the window.
+    // Cancel, action and OK buttons for the bottom of the window.
     wCancel = new Button( shell, SWT.PUSH );
     wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
     FormData fdCancel = new FormDataBuilder().right( 100, -MARGIN_SIZE )
@@ -291,7 +292,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
                                          .result();
     wOK.setLayoutData( fdOk );
 
-    //Space between bottom buttons and the table, final layout for table
+    // Space between bottom buttons and and group content.
     Label bottomSpacer = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
     FormData fdhSpacer = new FormDataBuilder().left()
                                               .right( 100, -MARGIN_SIZE )
@@ -299,7 +300,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
                                               .result();
     bottomSpacer.setLayoutData( fdhSpacer );
 
-    //Add everything to the scrolling composite
+    // Add everything to the scrolling composite
     scrolledComposite.setContent( contentComposite );
     scrolledComposite.setExpandVertical( true );
     scrolledComposite.setExpandHorizontal( true );
@@ -313,7 +314,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
     scrolledComposite.setLayoutData( fdScrolledComposite );
     props.setLook( scrolledComposite );
 
-    //Listeners
+    // Listeners
     lsCancel = new Listener() {
       public void handleEvent( Event e ) {
         cancel();
@@ -341,7 +342,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
       }
     } );
 
-    //Show shell
+    // Show shell
     setSize();
 
     // Populate Window.
@@ -362,9 +363,6 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
    */
   public void getData() {
     // Add target steps to 'send to' combo box options.
-    wSuccessfulToField.setText( Const.NVL( meta.getSuccessfulStepname( ), "" ) );
-    wFailedToField.setText( Const.NVL( meta.getFailedStepname( ), "" ) );
-
     StepMeta stepinfo = transMeta.findStep( stepname );
     if ( stepinfo != null ) {
       List<StepMeta> nextSteps = transMeta.findNextSteps( stepinfo );
@@ -374,7 +372,11 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
       } );
     }
 
-    // Add previous fields to tranfer combo box options.
+    // Get 'send to' steps.
+    wSuccessfulToField.setText( Const.NVL( meta.getSuccessfulStepname( ), "" ) );
+    wFailedToField.setText( Const.NVL( meta.getFailedStepname( ), "" ) );
+
+    // Add previous fields to transfer combo box options.
     try {
       String[] prevFields = transMeta.getPrevStepFields( stepname ).getFieldNames();
       Arrays.stream( prevFields ).forEach( field -> {
@@ -386,6 +388,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
       e.printStackTrace();
     }
 
+    // Get transfer fields values.
     String accessTokenField = meta.getAccessTokenField();
     if ( accessTokenField != null ) {
       wAccessTokenField.setText( meta.getAccessTokenField() );
@@ -404,6 +407,7 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
    * Save information from dialog fields to the meta-data input.
    */
   private void getMeta( DropboxOutputMeta meta ) {
+    // Set target streams.
     List<StreamInterface> targetStreams = meta.getStepIOMeta().getTargetStreams();
     String successfulStream = wSuccessfulToField.getText();
     String failedStream = wFailedToField.getText();
@@ -411,7 +415,8 @@ public class DropboxOutputDialog extends BaseStepDialog implements StepDialogInt
     targetStreams.get( 1 ).setStepMeta( transMeta.findStep( failedStream ) );
     meta.setSuccessfulStepname( successfulStream );
     meta.setFailedStepname( failedStream );
-    
+
+    // Set transfer fields.
     meta.setAccessTokenField( wAccessTokenField.getText() );
     meta.setSourceFilesField( wSourceFilesComboBox.getText() );
     meta.setTargetFilesField( wTargetFilesComboBox.getText() );
