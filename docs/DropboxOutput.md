@@ -1,5 +1,5 @@
-# Dropbox Ouput
-The dropbox ouput step writes information to a Dropbox storage account.
+# Dropbox Output
+The dropbox output step writes information to a Dropbox storage account.
 
 ### Fields
 Field  | Description
