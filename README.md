@@ -1,6 +1,6 @@
 
 # PDI Dropbox plugin
-PDI plugin that offers Input and Ouput steps for Dropbox.
+PDI plugin that offers Input and Output steps for Dropbox.
 
 ## Documentation
 - [Dropbox Input](https://github.com/LeonardoCoelho71950/pdi-dropbox-plugin/blob/master/docs/DropboxInput.md)
